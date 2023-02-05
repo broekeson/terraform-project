@@ -1,0 +1,13 @@
+#variables for nginx setup and virtualhost
+nginx_port: 80
+nginx_user: www-data
+nginx_group: www-data
+http_host: "www.ekene.tech"
+nginx_conf: "/etc/nginx/sites-available/ekene.tech"
+nginx_conf_link: "/etc/nginx/sites-enabled/ekene.tech"
+project_name: "ekene.tech"
+project_root: "/var/www/html"
+project_url: "http://ekene.tech"
+http_conf_link: "/etc/nginx/sites-enabled/default"
+http_conf: "/etc/nginx/sites-available/default"
+php_version: "7.4"

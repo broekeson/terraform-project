@@ -1,0 +1,61 @@
+---
+- include_vars: templates/vars.yaml
+
+- name: Install nginx
+  package:
+    name: nginx
+    state: present
+
+- name: Remove default nginx configs
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{ http_conf_link }}"
+    - "{{ http_conf }}"
+
+- name: Start & Enable Nginx
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Configure nginx
+  template:
+    src: templates/nginx.conf.j2
+    dest: "{{ nginx_conf }}"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: 0644
+
+- name: Link config file
+  file:
+    src: "{{ nginx_conf }}"
+    dest: "{{ nginx_conf_link }}"
+    state: link
+
+- name: Reload Nginx
+  service:
+    name: nginx
+    state: reloaded
+
+- name: enable ufw and allow http and https
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+    state: enabled
+  with_items:
+    - 80
+    - 443
+    - 22
+  tags: ufw
+
+- name: Allow nginx through firewall
+  ufw:
+    rule: allow
+    name: "Nginx Full"
+    state: enabled
+  tags: ufw
+
+- include_tasks: php.yaml

@@ -1,0 +1,22 @@
+---
+- name: LEMP Stack Setup
+  hosts: web-server
+  become: yes
+
+  tasks:
+  - name: update apt
+    apt: update_cache=yes
+
+  - name: upgrade all packages
+    apt: upgrade=dist force_apt_get=yes
+
+  - name: set timezone
+    command: timedatectl set-timezone Africa/Lagos
+
+  - name: Install ufw
+    apt:
+      name: ufw
+      state: present
+    tags: ufw
+
+  - include_tasks: nginx.yaml
