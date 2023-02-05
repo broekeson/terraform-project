@@ -1,3 +1,9 @@
+locals {
+  ssh_user = "admin"
+  key_name = "starlight"
+  private_key_path = "~/Downloads/starlight.pem"
+}
+
 #Provider
 provider "aws" {
   region = var.region
@@ -58,11 +64,12 @@ module "ec2" {
   ec2_instance_count                       = var.ec2_instance_count
   ec2_instance_ami                         = var.ec2_instance_ami
   ec2_instance_type                        = var.ec2_instance_type
-  ec2_instance_key_name                    = var.ec2_instance_key_name
+  ec2_instance_key_name                    = local.key_name
   ec2_instance_subnet_id                   = module.vpc.subnet_id.0
   vpc_security_group_ids                   = [module.sg.ec2_sg_id]
   ec2_instance_associate_public_ip_address = true
   ec2_instance_tags                        = var.ec2_instance_tags
+
 }
 
 #Create Load Balancer using modules
@@ -106,33 +113,40 @@ module "route53" {
   route53_alias_zone_id = module.lb.lb_zone_id
 }
 
-#Create a local file to store the public instance private IP
-resource "template_file" "inventory" {
-  template = <<EOF
-  [web]
-  ${module.ec2.ec2_instance_public_ip.0}
-  ${module.ec2.ec2_instance_public_ip.1}
-  ${module.ec2.ec2_instance_public_ip.2}
-  EOF
+#Run Ansible Playbook using pem file
+resource "null_resource" "connection" {
+  depends_on = [
+    module.ec2
+  ]
+
+  count = 3
+
+  provisioner "remote-exec" {
+    inline = [
+      "echo 'SSH is working'"
+    ]
+
+    connection {
+    type        = "ssh"
+    user        = local.ssh_user
+    host = module.ec2.ec2_instance_public_ip[count.index]
+    private_key = file(local.private_key_path)
+  }
+
+  }
 
   provisioner "local-exec" {
-    command = "echo '${template_file.inventory.rendered}' > ansible/inventory"
+    command = "echo ${module.ec2.ec2_instance_public_ip[count.index]} >> ansible/ips.ini"
   }
 }
 
 #Run Ansible Playbook using pem file
 resource "null_resource" "ansible" {
   depends_on = [
-    module.ec2,
-    module.lb,
-    module.route53,
-    template_file.inventory
+    null_resource.connection
   ]
 
   provisioner "local-exec" {
-    command = "ansible-playbook -i ansible/inventory ansible/playbook.yml --private-key /ansible/ekene.pem"
+    command = "./ansible.sh"
   }
 }
-
-
-#Output

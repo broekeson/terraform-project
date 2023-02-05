@@ -6,6 +6,7 @@ variable "region" {
   default = "us-east-1"
 }
 
+
 #VPC variable block
 variable "cidr_block" {
   type    = string
@@ -151,7 +152,7 @@ variable "ec2_instance_tags" {
 
 variable "ec2_instance_key_name" {
   type    = string
-  default = "ekene"
+  default = "starlight_key"
 }
 
 #Load Balancer variable block
