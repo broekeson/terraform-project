@@ -1,5 +1,5 @@
 ---
-- name: LEMP Stack Setup
+- name: LDisplay hostname
   hosts: all
   remote_user: admin
   become: yes
