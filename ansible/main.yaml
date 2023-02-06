@@ -14,10 +14,27 @@
   - name: set timezone
     command: timedatectl set-timezone Africa/Lagos
 
-  - name: Install ufw
+  - name: Install Apache
     apt:
-      name: ufw
-      state: present
-    tags: ufw
+      name: apache2
+      state: latest
 
-  - include_tasks: nginx.yaml
+  - name: Install PHP
+    apt:
+      name: php
+      state: latest
+
+  - name: Create a PHP file from a template
+    template:
+    src: templates/info.php.j2
+    dest: /var/www/html/info.php
+
+  - name: Remove default index.html file
+    file:
+    path: /var/www/html/index.html
+    state: absent
+
+  - name: Restart apache
+    service:
+    name: apache2
+    state: restarted
