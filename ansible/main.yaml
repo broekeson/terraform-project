@@ -19,22 +19,10 @@
       name: apache2
       state: latest
 
-  - name: Install PHP
-    apt:
-      name: php
-      state: latest
-
-  - name: Create a PHP file from a template
-    template:
-    src: templates/info.php.j2
-    dest: /var/www/html/info.php
-
-  - name: Remove default index.html file
-    file:
-    path: /var/www/html/index.html
-    state: absent
+  - name: Output hostname 
+    shell: echo $(hostname) > /var/www/html/index.html
 
   - name: Restart apache
     service:
-    name: apache2
-    state: restarted
+      name: apache2
+      state: restarted
